@@ -170,7 +170,7 @@ static inline int CountLeadingZeros(uint32_t value) {
 static inline int CountLeadingZeros(uint64_t value) {
 #if defined(__clang__) || defined(__GNUC__)
   if (value == 0) return 64;
-  return static_cast<int>(__builtin_clzl(value));
+  return static_cast<int>(__builtin_clzll(value));
 #elif defined(_MSC_VER)
   unsigned long index;                     // NOLINT
   if (_BitScanReverse64(&index, value)) {  // NOLINT
@@ -324,6 +324,15 @@ static inline void ClearBit(uint8_t* bits, int64_t i) {
 }
 
 static inline void SetBit(uint8_t* bits, int64_t i) { bits[i / 8] |= kBitmask[i % 8]; }
+
+static inline void SetBitTo(uint8_t* bits, int64_t i, bool bit_is_set) {
+  // https://graphics.stanford.edu/~seander/bithacks.html
+  // "Conditionally set or clear bits without branching"
+  // NOTE: this seems to confuse Valgrind as it reads from potentially
+  // uninitialized memory
+  bits[i / 8] ^= static_cast<uint8_t>(-static_cast<uint8_t>(bit_is_set) ^ bits[i / 8]) &
+                 kBitmask[i % 8];
+}
 
 /// \brief Convert vector of bytes to bitmap buffer
 ARROW_EXPORT

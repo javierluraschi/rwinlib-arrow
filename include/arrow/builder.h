@@ -18,13 +18,15 @@
 #ifndef ARROW_BUILDER_H
 #define ARROW_BUILDER_H
 
-#include <algorithm>
+#include <algorithm>  // IWYU pragma: keep
 #include <array>
 #include <cstdint>
-#include <functional>
+#include <cstring>
+#include <iterator>
 #include <limits>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "arrow/buffer.h"
@@ -35,21 +37,17 @@
 #include "arrow/util/bit-util.h"
 #include "arrow/util/hash.h"
 #include "arrow/util/macros.h"
+#include "arrow/util/type_traits.h"
 #include "arrow/util/visibility.h"
 
 namespace arrow {
 
 class Array;
+struct ArrayData;
 class Decimal128;
 
 constexpr int64_t kBinaryMemoryLimit = std::numeric_limits<int32_t>::max() - 1;
 constexpr int64_t kListMaximumElements = std::numeric_limits<int32_t>::max() - 1;
-
-namespace internal {
-
-struct ArrayData;
-
-}  // namespace internal
 
 constexpr int64_t kMinBuilderCapacity = 1 << 5;
 
@@ -175,6 +173,8 @@ class ARROW_EXPORT ArrayBuilder {
 
     length_ += std::distance(begin, end);
   }
+
+  void UnsafeAppendNull() { UnsafeAppendToBitmap(false); }
 
  protected:
   ArrayBuilder() {}
@@ -645,6 +645,14 @@ class ARROW_EXPORT BooleanBuilder : public ArrayBuilder {
   /// Scalar append
   Status Append(const bool val) {
     ARROW_RETURN_NOT_OK(Reserve(1));
+    UnsafeAppend(val);
+    return Status::OK();
+  }
+
+  Status Append(const uint8_t val) { return Append(val != 0); }
+
+  /// Scalar append, without checking for capacity
+  void UnsafeAppend(const bool val) {
     BitUtil::SetBit(null_bitmap_data_, length_);
     if (val) {
       BitUtil::SetBit(raw_data_, length_);
@@ -652,10 +660,9 @@ class ARROW_EXPORT BooleanBuilder : public ArrayBuilder {
       BitUtil::ClearBit(raw_data_, length_);
     }
     ++length_;
-    return Status::OK();
   }
 
-  Status Append(const uint8_t val) { return Append(val != 0); }
+  void UnsafeAppend(const uint8_t val) { UnsafeAppend(val != 0); }
 
   /// \brief Append a sequence of elements in one shot
   /// \param[in] values a contiguous array of bytes (non-zero is 1)
@@ -852,6 +859,24 @@ class ARROW_EXPORT BinaryBuilder : public ArrayBuilder {
 
   Status AppendNull();
 
+  /// \brief Append without checking capacity
+  ///
+  /// Offsets and data should have been presized using Reserve() and
+  /// ReserveData(), respectively.
+  void UnsafeAppend(const uint8_t* value, int32_t length) {
+    UnsafeAppendNextOffset();
+    value_data_builder_.UnsafeAppend(value, length);
+    UnsafeAppendToBitmap(true);
+  }
+
+  void UnsafeAppend(const char* value, int32_t length) {
+    UnsafeAppend(reinterpret_cast<const uint8_t*>(value), length);
+  }
+
+  void UnsafeAppend(const std::string& value) {
+    UnsafeAppend(value.c_str(), static_cast<int32_t>(value.size()));
+  }
+
   void Reset() override;
   Status Resize(int64_t capacity) override;
 
@@ -876,6 +901,11 @@ class ARROW_EXPORT BinaryBuilder : public ArrayBuilder {
   TypedBufferBuilder<uint8_t> value_data_builder_;
 
   Status AppendNextOffset();
+
+  void UnsafeAppendNextOffset() {
+    const int64_t num_bytes = value_data_builder_.length();
+    offsets_builder_.UnsafeAppend(static_cast<int32_t>(num_bytes));
+  }
 };
 
 /// \class StringBuilder
@@ -887,6 +917,7 @@ class ARROW_EXPORT StringBuilder : public BinaryBuilder {
 
   using BinaryBuilder::Append;
   using BinaryBuilder::Reset;
+  using BinaryBuilder::UnsafeAppend;
 
   /// \brief Append a sequence of strings in one shot.
   ///

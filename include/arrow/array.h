@@ -18,24 +18,27 @@
 #ifndef ARROW_ARRAY_H
 #define ARROW_ARRAY_H
 
-#include <cmath>
+#include <cstddef>
 #include <cstdint>
+#include <iosfwd>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
 #include "arrow/buffer.h"
 #include "arrow/type.h"
-#include "arrow/type_fwd.h"
 #include "arrow/type_traits.h"
 #include "arrow/util/bit-util.h"
 #include "arrow/util/checked_cast.h"
 #include "arrow/util/macros.h"
 #include "arrow/util/visibility.h"
-#include "arrow/visitor.h"
 
 namespace arrow {
+
+class Array;
+class ArrayVisitor;
 
 using BufferVector = std::vector<std::shared_ptr<Buffer>>;
 
@@ -47,9 +50,6 @@ constexpr int64_t kUnknownNullCount = -1;
 
 class MemoryPool;
 class Status;
-
-template <typename T>
-struct Decimal;
 
 // ----------------------------------------------------------------------
 // Generic array data container
@@ -631,10 +631,15 @@ class ARROW_EXPORT StructArray : public Array {
               std::shared_ptr<Buffer> null_bitmap = NULLPTR, int64_t null_count = 0,
               int64_t offset = 0);
 
+  const StructType* struct_type() const;
+
   // Return a shared pointer in case the requestor desires to share ownership
   // with this array.  The returned array has its offset, length and null
   // count adjusted.
   std::shared_ptr<Array> field(int pos) const;
+
+  /// Returns null if name not found
+  std::shared_ptr<Array> GetFieldByName(const std::string& name) const;
 
   /// \brief Flatten this array as a vector of arrays, one for each field
   ///
