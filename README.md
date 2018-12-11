@@ -25,7 +25,7 @@ cd /c/Users/Administrator/RStudio/boost_1_68_0/
 
 ```
 cd c:\Users\Administrator\RStudio\
-github clone http://github.com/apache/arrow
+git clone http://github.com/apache/arrow
 git checkout f9e5818ef8bd4f1eea13c1185a59077bb1323374
 ```
 
