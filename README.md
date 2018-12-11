@@ -17,7 +17,7 @@ pacman -S mingw-w64-x86_64-cmake
 ```
 cd /c/Users/Administrator/RStudio/boost_1_68_0/
 ./bootstrap.sh --with-libraries=regex,system,filesystem
-./b2 -j2 variant=release define=_GLIBCXX_USE_CXX11_ABI=0 link=static
+./b2 -j2 variant=release link=static
 ```
 
 - [Download GitHub SCM for Windows](https://git-scm.com/downloads).
@@ -25,21 +25,8 @@ cd /c/Users/Administrator/RStudio/boost_1_68_0/
 
 ```
 cd c:\Users\Administrator\RStudio\
-github clone http://github.com/jimhester/rarrow
 github clone http://github.com/apache/arrow
 git checkout f9e5818ef8bd4f1eea13c1185a59077bb1323374
-```
-
-- Patch arrow:
-
-```
-# arrow/cpp/src/arrow/CMakeLists.txt:
-if (NOT ARROW_BOOST_HEADER_ONLY AND ARROW_HDFS)
-  set(ARROW_SRCS ${ARROW_SRCS}
-    io/hdfs.cc
-    io/hdfs-internal.cc
-  )
-endif()
 ```
 
 - From the `mingw64` shell, build arrow:
@@ -55,9 +42,14 @@ make
 make install
 ```
 
-- Merge rarrow and arrow:
+- Update `rwinlib/arrow` binaries:
 
 ```
+cd <rwinlib/arrow github path>
 cp -r /c/Program\ Files\ \(x86\)/arrow/include .
 cp /c/Program\ Files\ \(x86\)/arrow/lib/libarrow.a lib/x64/
 ```
+
+- Update `rwinlib/arrow` compiler:
+- Download https://nuwen.net/files/mingw/history/mingw-15.4.exe
+- Extract to `rwinlib/arrow/`, optionally, delete unnecesary libraries.
