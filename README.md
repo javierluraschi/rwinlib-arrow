@@ -100,5 +100,5 @@ cmake .. -DARROW_BUILD_TESTS=FALSE -DARROW_WITH_SNAPPY=FALSE -DARROW_WITH_ZSTD=F
 ```
 cd <rwinlib/arrow github path>
 cp -r /c/Program\ Files\ \(x86\)/arrow/include .
-cp /c/Program\ Files\ \(x86\)/arrow/lib/libarrow.a lib/x32/
+cp /c/Program\ Files\ \(x86\)/arrow/lib/libarrow.a lib/i386/
 ```
