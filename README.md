@@ -56,9 +56,25 @@ cp /c/Program\ Files\ \(x86\)/arrow/lib/libarrow.a lib/x64/
 - Download https://nuwen.net/files/mingw/history/mingw-15.4.exe
 - Extract to `rwinlib/arrow/`, optionally, delete unnecesary libraries.
 
+- Validate `x64` build:
+
+```
+objdump -x lib/i386/libarrow.a | head -n 10
+```
+```
+array.cc.obj:     file format pe-x86-64
+rw-rw-rw- 0/0 567940 Dec 11 20:05 2018 array.cc.obj
+architecture: i386:x86-64, flags 0x00000039:
+HAS_RELOC, HAS_DEBUG, HAS_SYMS, HAS_LOCALS
+start address 0x0000000000000000
+
+Characteristics 0x4
+        line numbers stripped
+```
+
 ## i386 release build
 
-- Launch `c:\msys64\mingw64` and run:
+- Launch `c:\msys64\mingw32` and run:
 
 ```
 cd /c/Users/Administrator/RStudio/boost_1_68_0/
@@ -101,4 +117,21 @@ cmake .. -DARROW_BUILD_TESTS=FALSE -DARROW_WITH_SNAPPY=FALSE -DARROW_WITH_ZSTD=F
 cd <rwinlib/arrow github path>
 cp -r /c/Program\ Files\ \(x86\)/arrow/include .
 cp /c/Program\ Files\ \(x86\)/arrow/lib/libarrow.a lib/i386/
+```
+
+- Validate `i386` build:
+
+```
+objdump -x lib/i386/libarrow.a | head -n 10
+```
+```
+array.cc.obj:     file format pe-i386
+rw-rw-rw- 0/0 477690 Dec 14 06:58 2018 array.cc.obj
+architecture: i386, flags 0x00000039:
+HAS_RELOC, HAS_DEBUG, HAS_SYMS, HAS_LOCALS
+start address 0x00000000
+
+Characteristics 0x104
+        line numbers stripped
+
 ```
