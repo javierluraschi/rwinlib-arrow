@@ -3,7 +3,7 @@
 _realname=arrow
 pkgbase=mingw-w64-${_realname}-backport
 pkgname="${MINGW_PACKAGE_PREFIX}-${_realname}"
-pkgver=0.11.1
+pkgver=0.12.0
 pkgrel=1
 pkgdesc="Apache Arrow is a cross-language development platform for in-memory data (mingw-w64)"
 arch=("any")
@@ -14,26 +14,20 @@ depends=("${MINGW_PACKAGE_PREFIX}-boost"
 makedepends=("${MINGW_PACKAGE_PREFIX}-cmake"
              "${MINGW_PACKAGE_PREFIX}-gcc")
 options=("staticlibs" "strip" "!buildflags")
-source=("https://www.apache.org/dist/arrow/arrow-${pkgver}/apache-${_realname}-${pkgver}.tar.gz"
-        "https://github.com/apache/arrow/commit/aaf70a41575f5eff590b4f73b8160ae896e6c24e.patch"
-        "https://github.com/apache/arrow/commit/eb500b657895ed5f762aa7b819fcea2cb898358d.patch"
+source=("https://github.com/javierluraschi/arrow/archive/apache-arrow-${pkgver}.tar.gz"
         "cpuidex.patch")
-sha256sums=("c524f3d47f0cdb7445c0326b20e79f60485e12daeb2adc8ad6a845ad6c19c1ac"
-            "bebf9c852d36bd16c218c8965ec4899c9b82434a9cd143b19f439e060bb57e1d"
-            "a5e8a16ab51b728d00a74af57ae07e3d6fb6dd63ef71c805dc6fb3e07a369db0"
+sha256sums=("SKIP"
             "SKIP")
 
 cmake_build_type=release
 meson_build_type=debugoptimized
 
-source_dir=apache-${_realname}-${pkgver}
+source_dir=arrow-apache-${_realname}-${pkgver}
 cpp_build_dir=build-${CARCH}-cpp
 c_glib_build_dir=build-${CARCH}-c-glib
 
 prepare() {
   pushd ${source_dir}
-  patch -p1 -i ${srcdir}/aaf70a41575f5eff590b4f73b8160ae896e6c24e.patch
-  patch -p1 -i ${srcdir}/eb500b657895ed5f762aa7b819fcea2cb898358d.patch
   patch -p1 -i ${srcdir}/cpuidex.patch
   popd
 }
@@ -55,24 +49,26 @@ build() {
       -G "MSYS Makefiles" \
       -DCMAKE_INSTALL_PREFIX=${MINGW_PREFIX} \
       -DCMAKE_BUILD_TYPE=${cmake_build_type} \
-	  -DARROW_BUILD_STATIC=ON \
+    -DARROW_BUILD_STATIC=ON \
       -DARROW_BUILD_TESTS=OFF \
       -DARROW_PYTHON=OFF \
       -DARROW_BOOST_USE_SHARED=OFF \
       -DARROW_WITH_SNAPPY=OFF \
-	  -DARROW_WITH_ZSTD=OFF \
-	  -DARROW_WITH_LZ4=OFF \
-	  -DARROW_JEMALLOC=OFF \
-	  -DARROW_BUILD_SHARED=OFF\
-	  -DARROW_BOOST_VENDORED=OFF \
-	  -DARROW_WITH_ZLIB=OFF \
-	  -DARROW_WITH_BROTLI=OFF \
-	  -DARROW_USE_GLOG=OFF \
-	  -DPTHREAD_LIBRARY=OFF \
-	  -DARROW_BUILD_UTILITIES=ON \
-	  -DARROW_HDFS=OFF
+    -DARROW_WITH_ZSTD=OFF \
+    -DARROW_WITH_LZ4=OFF \
+    -DARROW_JEMALLOC=OFF \
+    -DARROW_BUILD_SHARED=OFF\
+    -DARROW_BOOST_VENDORED=OFF \
+    -DARROW_WITH_ZLIB=OFF \
+    -DARROW_WITH_BROTLI=OFF \
+    -DARROW_USE_GLOG=OFF \
+    -DPTHREAD_LIBRARY=OFF \
+    -DARROW_BUILD_UTILITIES=ON \
+    -DARROW_HDFS=OFF \
+    -DARROW_TEST_LINKAGE=static \
+    -DARROW_IPC=ON
 
-	  sed -i 's/-fPIC/ /g' flatbuffers_ep-prefix/src/flatbuffers_ep-stamp/flatbuffers_ep-configure-RELEASE.cmake
+    sed -i 's/-fPIC/ /g' flatbuffers_ep-prefix/src/flatbuffers_ep-stamp/flatbuffers_ep-configure-RELEASE.cmake
 
   make
   popd
